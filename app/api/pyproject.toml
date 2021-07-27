@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "cost-confirmation-api"
+version = "0.1.0"
+description = ""
+authors = ["darksidecat <bitalik371@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+SQLAlchemy = "^1.4.22"
+fastapi = "^0.70.0"
+uvicorn = "^0.15.0"
+asyncpg = "^0.25.0"
+
+[tool.poetry.dev-dependencies]
+sqlalchemy2-stubs = "^0.0.2-alpha.8"
+mypy = "^0.910"
+black = "^21.7b0"
+isort = "^5.9.3"
+flake8 = "^3.9.2"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

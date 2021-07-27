@@ -1,0 +1,13 @@
+USER_ID = "user_id"
+USER = "user"
+USERS = "users"
+YES = "Yes"
+NO = "No"
+YES_NO = [("Yes", YES), ("No", NO)]
+OLD_USER_ID = "old_user_id"
+NEW_USER_ID = "new_user_id"
+USER_NAME = "user_name"
+ACCESS_LEVELS = "access_levels"
+FIELD = "field"
+ALL_ACCESS_LEVELS = "all_access_levels"
+DEPARTMENT_NAME = "department_name"
