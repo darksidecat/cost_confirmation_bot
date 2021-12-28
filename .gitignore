@@ -4,5 +4,5 @@ bot.ini
 *.pyc
 /database.db
 */__pycache__/
-/.env
-/.env.dev
+/deployment/.env
+/deployment/.env.dev

@@ -1,10 +1,9 @@
 import json
-from typing import Optional
 
-from pydantic import BaseModel, BaseSettings, validator
+from pydantic import BaseSettings, validator
 
 
-class DB(BaseModel):
+class DB(BaseSettings):
     host: str
     port: int
     name: str
@@ -12,12 +11,12 @@ class DB(BaseModel):
     password: str
 
 
-class Redis(BaseModel):
+class Redis(BaseSettings):
     host: str
     db: int
 
 
-class TgBot(BaseModel):
+class TgBot(BaseSettings):
     token: str
     admin_ids: list[int]
     use_redis: bool
@@ -55,17 +54,14 @@ class SettingsExtractor(BaseSettings):
     REDIS__DB: int
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     tg_bot: TgBot
     db: DB
     redis: Redis
 
 
-def load_config(env_file: Optional[str] = None) -> Settings:
-    if env_file:
-        settings = SettingsExtractor(_env_file=env_file)
-    else:
-        settings = SettingsExtractor(_env_file=None)
+def load_config() -> Settings:
+    settings = SettingsExtractor()
 
     return Settings(
         tg_bot=TgBot(

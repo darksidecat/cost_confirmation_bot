@@ -6,7 +6,6 @@ from aiogram import Bot, Dispatcher, Router
 from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
 from aiogram.dispatcher.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram_dialog import DialogRegistry
-from aiogram_dialog.tools import render_preview, render_transitions
 
 from app.config import load_config
 from app.infrastructure.database.db import add_initial_admin, sa_sessionmaker
@@ -42,7 +41,7 @@ async def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
     logger.error("Starting bot")
-    config = load_config(env_file=".env.dev" if args.dev is not None else None)
+    config = load_config()
 
     if config.tg_bot.use_redis:
         storage = RedisStorage.from_url(
@@ -75,7 +74,6 @@ async def main():
         await add_initial_admin(session_factory, config)
 
     try:
-        # render_transitions(dialog_registry, title="Cost confirmation bot")
         await set_commands(bot, config)
         await dp.start_polling(bot, config=config)
     finally:

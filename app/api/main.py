@@ -10,7 +10,7 @@ from app.infrastructure.database.db import sa_sessionmaker
 def api():
     app = FastAPI()
 
-    config = load_config(".env.dev")
+    config = load_config()
     session_factory = sa_sessionmaker(config.db)
 
     app.add_middleware(DatabaseSessionMiddleware, session_factory=session_factory)

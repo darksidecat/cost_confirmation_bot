@@ -26,8 +26,8 @@ services:
             - "15432:5432"
     db_migration:
         build:
-            context: .
-            dockerfile: app/tgbot/Dockerfile
+            context: ..
+            dockerfile: ../app/tgbot/Dockerfile
         restart: "on-failure"
         depends_on:
             - db
@@ -35,8 +35,8 @@ services:
         command: ["/wait-for-it/wait-for-it.sh", "db:5432", "-t", "2", "--", "python", "-m", "alembic", "upgrade", "head"]
     bot:
         build:
-            context: .
-            dockerfile: app/tgbot/Dockerfile
+            context: ..
+            dockerfile: ../app/tgbot/Dockerfile
         stop_signal: SIGINT
         restart: "unless-stopped"
         env_file: .env
@@ -46,8 +46,8 @@ services:
             - redis
     api:
         build:
-            context: .
-            dockerfile: app/api/Dockerfile
+            context: ..
+            dockerfile: ../app/api/Dockerfile
         stop_signal: SIGINT
         restart: "unless-stopped"
         env_file: .env
