@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from pydantic import parse_obj_as
 from sqlalchemy import delete, select
@@ -52,7 +52,7 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
         return parse_obj_as(List[User], users)
 
     @exception_mapper
-    async def user_by_id(self, user_id: int) -> Optional[User]:
+    async def user_by_id(self, user_id: int) -> User:
         user = await self.session.get(TelegramUserEntry, user_id)
         if user:
             return User.from_orm(user)
@@ -65,8 +65,8 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
         if not user:
             raise UserNotExist
 
-        stmt = delete(TelegramUserEntry).where(TelegramUserEntry.id == user_id)
-        await self.session.execute(stmt)
+        await self.session.delete(user)
+        await self.session.flush()
 
     @exception_mapper
     async def edit_user(self, user_id: int, user: User) -> User:

@@ -108,7 +108,7 @@ class PatchUser:
             AccessLevelNotExist - if user access level not exist
             UserAlreadyExist - if already exist user with new user id
         """
-        user = await self.uow.user.user_by_id(new_user.id)
+        user = await self.uow.user.user_by_id(user_id=new_user.id)
 
         if new_user.user_data.id:
             user.id = new_user.user_data.id

@@ -33,7 +33,6 @@ class AccessLevelEntry(Base):
         "TelegramUserEntry",
         secondary=user_access_levels,
         back_populates="access_levels",
-        cascade="all, delete",
     )
 
 
@@ -46,7 +45,6 @@ class TelegramUserEntry(Base):
         "AccessLevelEntry",
         secondary=user_access_levels,
         back_populates="users",
-        cascade="all, delete",
         lazy="selectin",
     )
     confirmation_path = relationship("ConfirmationPathEntry", back_populates="user")

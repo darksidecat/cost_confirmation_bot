@@ -10,7 +10,7 @@ class IUserRepo(Protocol):
     async def all_users(self) -> List[User]:
         ...
 
-    async def user_by_id(self, user_id: int) -> Optional[User]:
+    async def user_by_id(self, user_id: int) -> User:
         ...
 
     async def delete_user(self, user_id: int) -> None:
