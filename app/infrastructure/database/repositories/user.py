@@ -54,10 +54,10 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
     @exception_mapper
     async def user_by_id(self, user_id: int) -> User:
         user = await self.session.get(TelegramUserEntry, user_id)
-        if user:
-            return User.from_orm(user)
-        else:
+        if not user:
             raise UserNotExist
+
+        return User.from_orm(user)
 
     @exception_mapper
     async def delete_user(self, user_id: int) -> None:
