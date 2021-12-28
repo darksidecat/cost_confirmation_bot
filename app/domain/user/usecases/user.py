@@ -24,7 +24,16 @@ class GetUser:
     def __init__(self, uow: IUserUoW) -> None:
         self.uow = uow
 
-    async def __call__(self, user_id: int) -> Optional[User]:
+    async def __call__(self, user_id: int) -> User:
+        """
+        Args:
+            user_id:
+
+        Returns:
+            user
+        Raises:
+            UserNotExist - if user doesnt exist
+        """
         user = await self.uow.user.user_by_id(user_id)
         return user
 
@@ -100,8 +109,6 @@ class PatchUser:
             UserAlreadyExist - if already exist user with new user id
         """
         user = await self.uow.user.user_by_id(new_user.id)
-        if not user:
-            raise UserNotExist
 
         if new_user.user_data.id:
             user.id = new_user.user_data.id

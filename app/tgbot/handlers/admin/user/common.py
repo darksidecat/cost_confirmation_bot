@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.text import Format, Multi
 
 from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
 from app.domain.access_levels.usecases.access_levels import GetAccessLevels
+from app.domain.user.exceptions.user import UserNotExist
 from app.domain.user.interfaces.uow import IUserUoW
 from app.domain.user.usecases.user import GetUser, GetUsers
 from app.tgbot.constants import ACCESS_LEVELS, USER, USER_ID, USER_NAME, USERS
@@ -30,7 +31,10 @@ async def save_user_id(
 
 async def get_user(dialog_manager: DialogManager, uow: IUserUoW, **kwargs):
     user_id = dialog_manager.current_context().dialog_data[USER_ID]
-    user = await GetUser(uow)(int(user_id))
+    try:
+        user = await GetUser(uow)(int(user_id))
+    except UserNotExist:  # ToDo check if need
+        user = None
     return {USER: user}
 
 

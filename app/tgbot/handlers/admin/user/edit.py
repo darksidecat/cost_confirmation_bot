@@ -25,6 +25,7 @@ from app.domain.access_levels.usecases.access_levels import (
     GetUserAccessLevels,
 )
 from app.domain.user.dto.user import PatchUserData, UserPatch
+from app.domain.user.exceptions.user import UserNotExist
 from app.domain.user.interfaces.uow import IUserUoW
 from app.domain.user.usecases.user import GetUser, PatchUser
 from app.infrastructure.database.models import TelegramUserEntry
@@ -63,7 +64,10 @@ async def save_user_id(
 
 async def get_old_user(dialog_manager: DialogManager, uow: IUserUoW, **kwargs):
     user_id = dialog_manager.current_context().dialog_data[OLD_USER_ID]
-    user = await GetUser(uow)(int(user_id))
+    try:
+        user = await GetUser(uow)(int(user_id))
+    except UserNotExist:  # ToDo check if need
+        user = None
     return {USER: user}
 
 
@@ -83,27 +87,23 @@ async def request_name(
     await manager.done({USER_NAME: message.text})
 
 
+COLUMN_STATES = {
+    TelegramUserEntry.id.name: states.user_db.EditUserId.request,
+    TelegramUserEntry.name.name: states.user_db.EditUserName.request,
+    TelegramUserEntry.access_levels.key: states.user_db.EditAccessLevel.request,
+}
+
+
 async def on_field_selected(
     query: CallbackQuery,
     select: ManagedWidgetAdapter[Select],
     manager: DialogManager,
     item_id: str,
 ):
-    if item_id == TelegramUserEntry.id.name:
-        await manager.start(
-            state=states.user_db.EditUserId.request,
-            data=manager.current_context().dialog_data.copy(),
-        )
-    if item_id == TelegramUserEntry.name.name:
-        await manager.start(
-            state=states.user_db.EditUserName.request,
-            data=manager.current_context().dialog_data.copy(),
-        )
-    if item_id == TelegramUserEntry.access_levels.key:
-        await manager.start(
-            state=states.user_db.EditAccessLevel.request,
-            data=manager.current_context().dialog_data.copy(),
-        )
+    await manager.start(
+        state=COLUMN_STATES[item_id],
+        data=manager.current_context().dialog_data.copy(),
+    )
     await query.answer()
 
 

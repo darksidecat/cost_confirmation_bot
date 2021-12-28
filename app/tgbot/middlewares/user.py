@@ -3,6 +3,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import Update
 
+from app.domain.user.exceptions.user import UserNotExist
 from app.domain.user.interfaces.uow import IUserUoW
 from app.domain.user.usecases.user import GetUser
 
@@ -20,8 +21,10 @@ class UserDB(BaseMiddleware):
             from_user_id = event_user_id.id
 
             uow: IUserUoW = data["uow"]
-            get_user = GetUser(uow)
-            user = await get_user(from_user_id)
+            try:
+                user = await GetUser(uow)(int(from_user_id))
+            except UserNotExist:
+                user = None
 
             data["user"] = user
 

@@ -57,7 +57,7 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
         if user:
             return User.from_orm(user)
         else:
-            return None
+            raise UserNotExist
 
     @exception_mapper
     async def delete_user(self, user_id: int) -> None:
