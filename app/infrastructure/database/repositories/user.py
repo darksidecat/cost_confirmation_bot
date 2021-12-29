@@ -2,7 +2,8 @@ import logging
 from typing import List
 
 from pydantic import parse_obj_as
-from sqlalchemy import delete, select
+from sqlalchemy import select
+from sqlalchemy.orm.attributes import flag_dirty
 
 from app.domain.access_levels.entities.access_level import AccessLevel
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
@@ -17,10 +18,20 @@ logger = logging.getLogger(__name__)
 
 
 class UserRepo(SQLAlchemyRepo, IUserRepo):
-    @exception_mapper
+    async def _user(self, user_id: int) -> TelegramUserEntry:
+        user = await self.session.get(TelegramUserEntry, user_id)
+
+        # since the identity map use weakref, we use flag_dirty so that the object is
+        # saved in the identity map and no additional queries to the database are made
+        flag_dirty(user)
+
+        if not user:
+            raise UserNotExist
+        return user
+
     async def _assign_levels(
-        self, user: TelegramUserEntry, access_levels: list[AccessLevel]
-    ):
+        self, user: TelegramUserEntry, access_levels: tuple[AccessLevel, ...]
+    ) -> TelegramUserEntry:
         levels = []
         for access_level in access_levels:
             l = await self.session.get(AccessLevelEntry, access_level.id)
@@ -53,27 +64,18 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
 
     @exception_mapper
     async def user_by_id(self, user_id: int) -> User:
-        user = await self.session.get(TelegramUserEntry, user_id)
-        if not user:
-            raise UserNotExist
-
+        user = await self._user(user_id)
         return User.from_orm(user)
 
     @exception_mapper
     async def delete_user(self, user_id: int) -> None:
-        user = await self.session.get(TelegramUserEntry, user_id)
-        if not user:
-            raise UserNotExist
-
+        user = await self._user(user_id)
         await self.session.delete(user)
         await self.session.flush()
 
     @exception_mapper
     async def edit_user(self, user_id: int, user: User) -> User:
-        db_user = await self.session.get(TelegramUserEntry, user_id)
-
-        if not db_user:
-            raise UserNotExist
+        db_user = await self._user(user_id)
 
         db_user.id = user.id
         db_user.name = user.name
