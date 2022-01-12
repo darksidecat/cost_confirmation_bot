@@ -1,6 +1,6 @@
 from typing import List, Optional, Protocol
 
-from app.domain.user.entities.user import User
+from app.domain.user.models.user import User
 
 
 class IUserRepo(Protocol):

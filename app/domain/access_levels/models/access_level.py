@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from enum import Enum, unique
 
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
-from app.domain.common.entities.value_object import ValueObject
+from app.domain.common.models.value_object import ValueObject
 
 
 @unique

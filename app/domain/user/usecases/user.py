@@ -1,12 +1,12 @@
 import logging
-from typing import List, Optional
+from typing import List
 
-from app.domain.access_levels.entities.access_level import id_to_access_levels
+from app.domain.access_levels.models.access_level import id_to_access_levels
 from app.domain.common.exceptions.repo import UniqueViolationError
 from app.domain.user import dto
-from app.domain.user.entities.user import User
-from app.domain.user.exceptions.user import UserAlreadyExist, UserNotExist
+from app.domain.user.exceptions.user import UserAlreadyExists
 from app.domain.user.interfaces.uow import IUserUoW
+from app.domain.user.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class GetUser:
         Returns:
             user
         Raises:
-            UserNotExist - if user doesnt exist
+            UserNotExists - if user doesnt exist
         """
         user = await self.uow.user.user_by_id(user_id)
         return user
@@ -50,7 +50,7 @@ class AddUser:
         Returns:
             created user
         Raises:
-            UserAlreadyExist - if user already exist
+            UserAlreadyExists - if user already exist
             AccessLevelNotExist - if user access level not exist
         """
         access_levels = id_to_access_levels(user.access_levels)
@@ -64,7 +64,8 @@ class AddUser:
         try:
             await self.uow.commit()
         except UniqueViolationError:
-            raise UserAlreadyExist
+            await self.uow.rollback()
+            raise UserAlreadyExists
         logger.info("User added: id=%s, %s", user.id, user)
         return user
 
@@ -80,7 +81,7 @@ class DeleteUser:
             user_id: user id for deleting
 
         Raises:
-            UserNotExist - if user for deleting doesnt exist
+            UserNotExists - if user for deleting doesnt exist
 
 
         """
@@ -104,9 +105,9 @@ class PatchUser:
             edited user
 
         Raises:
-            UserNotExist - if user for editing doesnt exist
+            UserNotExists - if user for editing doesnt exist
             AccessLevelNotExist - if user access level not exist
-            UserAlreadyExist - if already exist user with new user id
+            UserAlreadyExists - if already exist user with new user id
         """
         user = await self.uow.user.user_by_id(user_id=new_user.id)
 
@@ -121,6 +122,7 @@ class PatchUser:
             updated_user = await self.uow.user.edit_user(user_id=new_user.id, user=user)
             await self.uow.commit()
         except UniqueViolationError:
-            raise UserAlreadyExist
+            await self.uow.rollback()
+            raise UserAlreadyExists
         logger.info("User edited: id=%s,", updated_user.id)
         return updated_user

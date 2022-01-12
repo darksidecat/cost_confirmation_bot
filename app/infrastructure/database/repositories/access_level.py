@@ -4,9 +4,9 @@ from pydantic import parse_obj_as
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.domain.access_levels.entities.access_level import AccessLevel
 from app.domain.access_levels.interfaces.repo import IAccessLevelRepo
-from app.domain.user.exceptions.user import UserNotExist
+from app.domain.access_levels.models.access_level import AccessLevel
+from app.domain.user.exceptions.user import UserNotExists
 from app.infrastructure.database.exception_mapper import exception_mapper
 from app.infrastructure.database.models import AccessLevelEntry, TelegramUserEntry
 from app.infrastructure.database.repositories.repo import SQLAlchemyRepo
@@ -26,6 +26,6 @@ class AccessLevelRepo(SQLAlchemyRepo, IAccessLevelRepo):
         user = await self.session.get(TelegramUserEntry, user_id)
 
         if not user:
-            raise UserNotExist
+            raise UserNotExists
 
         return parse_obj_as(List[AccessLevel], user.access_levels)

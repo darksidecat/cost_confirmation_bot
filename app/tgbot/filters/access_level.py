@@ -5,8 +5,8 @@ from aiogram.types import TelegramObject
 from pydantic import validator
 from sqlalchemy.orm import Session
 
-from app.domain.access_levels.entities.access_level import LevelName
-from app.domain.user.entities.user import User
+from app.domain.access_levels.models.access_level import LevelName
+from app.domain.user.models.user import User
 
 
 class AccessLevelFilter(BaseFilter):

@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from app.domain.access_levels.entities.access_level import Levels
-from app.domain.user.entities.user import User
+from app.domain.access_levels.models.access_level import Levels
+from app.domain.user.models.user import User
 
 
 class TestUser:

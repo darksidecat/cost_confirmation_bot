@@ -1,6 +1,6 @@
 from asyncio import Protocol
 
-from app.domain.access_levels.entities.access_level import AccessLevel
+from app.domain.access_levels.models.access_level import AccessLevel
 
 
 class IAccessLevelRepo(Protocol):

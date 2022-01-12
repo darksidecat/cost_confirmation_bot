@@ -2,8 +2,8 @@ from typing import Tuple
 
 from pydantic import validator
 
-from app.domain.access_levels.entities.access_level import AccessLevel, Levels
-from app.domain.user.entities.base_user import BaseUser
+from app.domain.access_levels.models.access_level import AccessLevel, Levels
+from app.domain.user.models.base_user import BaseUser
 
 
 class User(BaseUser):

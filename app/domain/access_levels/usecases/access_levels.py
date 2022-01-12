@@ -1,7 +1,7 @@
 from typing import List
 
-from app.domain.access_levels.entities.access_level import AccessLevel
 from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
+from app.domain.access_levels.models.access_level import AccessLevel
 
 
 class GetAccessLevels:
@@ -31,7 +31,7 @@ class GetUserAccessLevels:
         Returns: List of AccessLevel
 
         Raises:
-            UserNotExist - if user not exist
+            UserNotExists - if user not exist
 
         """
         return await self.uow.access_level.user_access_levels(user_id)

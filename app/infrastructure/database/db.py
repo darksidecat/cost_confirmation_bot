@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.config import DB, Settings
-from app.domain.access_levels.entities.access_level import Levels
+from app.domain.access_levels.models.access_level import Levels
 from app.infrastructure.database.models import AccessLevelEntry, TelegramUserEntry
 from app.infrastructure.database.repositories.user import logger
 

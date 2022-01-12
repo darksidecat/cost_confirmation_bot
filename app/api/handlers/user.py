@@ -12,9 +12,9 @@ from app.api.handlers.responses.errors import (
 from app.api.handlers.responses.user import Users
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
 from app.domain.user.dto.user import PatchUserData, UserCreate, UserPatch
-from app.domain.user.entities.user import User
-from app.domain.user.exceptions.user import UserAlreadyExist, UserNotExist
+from app.domain.user.exceptions.user import UserAlreadyExists, UserNotExists
 from app.domain.user.interfaces.uow import IUserUoW
+from app.domain.user.models.user import User
 from app.domain.user.usecases.user import (
     AddUser,
     DeleteUser,
@@ -60,7 +60,7 @@ async def create_user(
     try:
         user = await AddUser(uow)(UserCreate(id=user_id, **user.dict()))
         return user
-    except UserAlreadyExist:
+    except UserAlreadyExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserAlreadyExistError(user_id=user_id)
     except AccessLevelNotExist:
@@ -84,7 +84,7 @@ async def delete_user(
     try:
         await DeleteUser(uow=uow)(user_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
-    except UserNotExist:
+    except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserNotFoundError(user_id=user_id)
 
@@ -103,7 +103,7 @@ async def get_user(
 ):
     try:
         return await GetUser(uow)(user_id=user_id)
-    except UserNotExist:
+    except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserNotFoundError(user_id=user_id)
 
@@ -127,13 +127,13 @@ async def patch_user(
 ):
     try:
         user = await PatchUser(uow)(UserPatch(id=user_id, user_data=user_data))
-    except UserNotExist:
+    except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserNotFoundError(user_id=user_id)
     except AccessLevelNotExist:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return AccessLevelNotFoundError()
-    except UserAlreadyExist:
+    except UserAlreadyExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserAlreadyExistError(user_id=user_data.id)
     return user

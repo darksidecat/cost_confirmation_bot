@@ -5,9 +5,9 @@ class UserException(AppException):
     """Base User Exception"""
 
 
-class UserAlreadyExist(UserException):
+class UserAlreadyExists(UserException):
     """User already exist"""
 
 
-class UserNotExist(UserException):
+class UserNotExists(UserException):
     """User not exist"""

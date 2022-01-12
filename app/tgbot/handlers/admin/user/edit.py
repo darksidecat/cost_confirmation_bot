@@ -25,7 +25,7 @@ from app.domain.access_levels.usecases.access_levels import (
     GetUserAccessLevels,
 )
 from app.domain.user.dto.user import PatchUserData, UserPatch
-from app.domain.user.exceptions.user import UserNotExist
+from app.domain.user.exceptions.user import UserNotExists
 from app.domain.user.interfaces.uow import IUserUoW
 from app.domain.user.usecases.user import GetUser, PatchUser
 from app.infrastructure.database.models import TelegramUserEntry
@@ -66,7 +66,7 @@ async def get_old_user(dialog_manager: DialogManager, uow: IUserUoW, **kwargs):
     user_id = dialog_manager.current_context().dialog_data[OLD_USER_ID]
     try:
         user = await GetUser(uow)(int(user_id))
-    except UserNotExist:  # ToDo check if need
+    except UserNotExists:  # ToDo check if need
         user = None
     return {USER: user}
 

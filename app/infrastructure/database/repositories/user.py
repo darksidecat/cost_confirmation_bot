@@ -5,11 +5,11 @@ from pydantic import parse_obj_as
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_dirty
 
-from app.domain.access_levels.entities.access_level import AccessLevel
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
-from app.domain.user.entities.user import User
-from app.domain.user.exceptions.user import UserNotExist
+from app.domain.access_levels.models.access_level import AccessLevel
+from app.domain.user.exceptions.user import UserNotExists
 from app.domain.user.interfaces.repo import IUserRepo
+from app.domain.user.models.user import User
 from app.infrastructure.database.exception_mapper import exception_mapper
 from app.infrastructure.database.models import AccessLevelEntry, TelegramUserEntry
 from app.infrastructure.database.repositories.repo import SQLAlchemyRepo
@@ -21,12 +21,13 @@ class UserRepo(SQLAlchemyRepo, IUserRepo):
     async def _user(self, user_id: int) -> TelegramUserEntry:
         user = await self.session.get(TelegramUserEntry, user_id)
 
+        if not user:
+            raise UserNotExists
+
         # since the identity map use weakref, we use flag_dirty so that the object is
         # saved in the identity map and no additional queries to the database are made
         flag_dirty(user)
 
-        if not user:
-            raise UserNotExist
         return user
 
     async def _assign_levels(

@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram_dialog import DialogRegistry
 
-from app.domain.access_levels.entities.access_level import LevelName
+from app.domain.access_levels.models.access_level import LevelName
 
 from ...filters import AccessLevelFilter
 from .department.setup import register_department_handlers

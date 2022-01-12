@@ -21,7 +21,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
 from app.domain.access_levels.usecases.access_levels import GetAccessLevels
 from app.domain.user.dto.user import UserCreate
-from app.domain.user.exceptions.user import UserAlreadyExist
+from app.domain.user.exceptions.user import UserAlreadyExists
 from app.domain.user.interfaces.uow import IUserUoW
 from app.domain.user.usecases.user import AddUser
 from app.tgbot import states
@@ -97,7 +97,7 @@ async def add_user_yes_no(
         )
         data["result"] = result
 
-    except UserAlreadyExist:
+    except UserAlreadyExists:
         data["result"] = "User already exist"
 
     await manager.dialog().next()

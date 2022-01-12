@@ -4,7 +4,7 @@ from app.api.handlers.responses.base import ApiError
 
 
 class UserAlreadyExistError(ApiError):
-    error = Field("UserAlreadyExist", const=True)
+    error = Field("UserAlreadyExists", const=True)
     message = Field("User with this id already exist", const=True)
     user_id: int
 

@@ -3,7 +3,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship
 
-from app.domain.access_levels.entities.access_level import LevelName
+from app.domain.access_levels.models.access_level import LevelName
 
 from .base import Base
 
