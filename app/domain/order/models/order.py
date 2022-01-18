@@ -1,22 +1,15 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
+from typing import Optional, Tuple
 
-from pydantic import condecimal
 
+from app.domain.common.models.entity import entity
+from app.domain.common.models.value_object import value_object
 from app.domain.order.exceptions.order import (
     ConfirmationAlreadyProcessed,
     OrderNotConfirmed,
 )
-
-
-class Entity:
-    pass
-
-
-class ValueObject:
-    pass
 
 
 class ConfirmationPathType(Enum):
@@ -24,48 +17,56 @@ class ConfirmationPathType(Enum):
     INFORM = "INFORM"
 
 
-class User(Entity):
+@entity
+class User:
     id: int
     name: str
 
 
-class Department(Entity):
+@entity
+class Department:
     id: int
     name: str
 
 
-class Cost(Entity):
+@entity
+class Cost:
     id: int
     name: str
     department: Department
 
 
-class ConfirmationPaths(ValueObject):
+@entity
+class ConfirmationPaths:
     id: int
     user: User
     type: ConfirmationPathType
 
 
-class ConfirmationPath(ValueObject):
+@entity
+class ConfirmationPath:
     creator: User
     cost: Cost
-    confirmation_paths: tuple[ConfirmationPaths]
+    confirmation_paths: Tuple[ConfirmationPaths]
 
 
-class Currency(ValueObject):
-    id: int  # ToDo
+@entity
+class Currency:
+    id: int
     name: str
 
 
-class OrderDetails(ValueObject):
+@value_object
+class OrderDetails:
     date: datetime
-    amount: condecimal(gt=Decimal(0), decimal_places=2)
+    amount: Decimal
     vat: bool
     currency: Currency
     comment: str
 
 
-class Confirmation(Entity):
+@entity
+class Confirmation:
     date: Optional[datetime]
     status: Optional[bool]
 
@@ -98,7 +99,8 @@ class Confirmation(Entity):
         self.status = None
 
 
-class Order(Entity):
+@entity
+class Order:
     id: int
     confirmation_path: ConfirmationPath
     order_details: OrderDetails
