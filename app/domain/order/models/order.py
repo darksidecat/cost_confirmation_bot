@@ -5,12 +5,18 @@ from typing import Optional
 
 from pydantic import condecimal
 
-from app.domain.common.models.entity import Entity
-from app.domain.common.models.value_object import ValueObject
 from app.domain.order.exceptions.order import (
     ConfirmationAlreadyProcessed,
     OrderNotConfirmed,
 )
+
+
+class Entity:
+    pass
+
+
+class ValueObject:
+    pass
 
 
 class ConfirmationPathType(Enum):
@@ -34,13 +40,13 @@ class Cost(Entity):
     department: Department
 
 
-class ConfirmationPaths(Entity):
+class ConfirmationPaths(ValueObject):
     id: int
     user: User
     type: ConfirmationPathType
 
 
-class ConfirmationPath(Entity):
+class ConfirmationPath(ValueObject):
     creator: User
     cost: Cost
     confirmation_paths: tuple[ConfirmationPaths]
@@ -51,7 +57,7 @@ class Currency(ValueObject):
     name: str
 
 
-class OrderDetails(Entity):
+class OrderDetails(ValueObject):
     date: datetime
     amount: condecimal(gt=Decimal(0), decimal_places=2)
     vat: bool

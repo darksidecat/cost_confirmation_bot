@@ -5,6 +5,7 @@ from app.api.middlewares.db_session import DatabaseSessionMiddleware
 from app.api.providers import get_uow, uow_provider
 from app.config import load_config
 from app.infrastructure.database.db import sa_sessionmaker
+from app.infrastructure.database.models.user import map_tables
 
 
 def api():
@@ -12,6 +13,7 @@ def api():
 
     config = load_config()
     session_factory = sa_sessionmaker(config.db)
+    map_tables()
 
     app.add_middleware(DatabaseSessionMiddleware, session_factory=session_factory)
     app.include_router(user.user_router)

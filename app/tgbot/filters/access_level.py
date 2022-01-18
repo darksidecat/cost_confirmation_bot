@@ -6,7 +6,7 @@ from pydantic import validator
 from sqlalchemy.orm import Session
 
 from app.domain.access_levels.models.access_level import LevelName
-from app.domain.user.models.user import User
+from app.domain.user.dto.user import User
 
 
 class AccessLevelFilter(BaseFilter):

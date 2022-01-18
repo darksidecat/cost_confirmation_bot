@@ -6,3 +6,4 @@ class DTO(BaseModel):
         use_enum_values = True
         extra = Extra.forbid
         frozen = True
+        orm_mode = True

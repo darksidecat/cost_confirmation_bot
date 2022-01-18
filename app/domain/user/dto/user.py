@@ -1,5 +1,9 @@
-from typing import List, Optional
+from __future__ import annotations
 
+from typing import List, Optional, Tuple
+
+from app.domain.access_levels.dto.access_level import AccessLevel
+from app.domain.access_levels.models.helper import Levels
 from app.domain.common.dto.base import DTO
 
 
@@ -18,3 +22,20 @@ class PatchUserData(DTO):
 class UserPatch(DTO):
     id: int
     user_data: PatchUserData
+
+
+class BaseUser(DTO):
+    id: int
+    name: str
+
+
+class User(BaseUser):
+    access_levels: Tuple[AccessLevel, ...]
+
+    @property
+    def is_blocked(self) -> bool:
+        return Levels.BLOCKED.value in self.access_levels
+
+    @property
+    def is_admin(self) -> bool:
+        return Levels.ADMINISTRATOR.value in self.access_levels

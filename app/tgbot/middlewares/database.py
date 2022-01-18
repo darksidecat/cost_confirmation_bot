@@ -4,7 +4,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import Update
 from sqlalchemy.orm import sessionmaker
 
-from app.infrastructure.database.repositories import AccessLevelRepo, UserRepo
+from app.infrastructure.database.repositories import AccessLevelReader, UserRepo
 from app.infrastructure.database.uow import SQLAlchemyUoW
 
 
@@ -24,7 +24,7 @@ class Database(BaseMiddleware):
             data["uow"] = SQLAlchemyUoW(
                 session=session,
                 user_repo=UserRepo,
-                access_level_repo=AccessLevelRepo,
+                access_level_repo=AccessLevelReader,
             )
 
             return await handler(event, data)

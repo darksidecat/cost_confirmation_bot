@@ -11,10 +11,9 @@ from app.api.handlers.responses.errors import (
 )
 from app.api.handlers.responses.user import Users
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
-from app.domain.user.dto.user import PatchUserData, UserCreate, UserPatch
+from app.domain.user.dto.user import PatchUserData, User, UserCreate, UserPatch
 from app.domain.user.exceptions.user import UserAlreadyExists, UserNotExists
 from app.domain.user.interfaces.uow import IUserUoW
-from app.domain.user.models.user import User
 from app.domain.user.usecases.user import (
     AddUser,
     DeleteUser,

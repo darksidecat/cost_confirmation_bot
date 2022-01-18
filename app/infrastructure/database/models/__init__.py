@@ -7,4 +7,3 @@ from .confirmation_path import (
     InformLevelEntry,
 )
 from .order import CurrencyEntry, OrderEntry
-from .user import AccessLevelEntry, TelegramUserEntry

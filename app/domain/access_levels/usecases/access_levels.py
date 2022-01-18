@@ -1,7 +1,7 @@
 from typing import List
 
+from app.domain.access_levels.dto.access_level import AccessLevel
 from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
-from app.domain.access_levels.models.access_level import AccessLevel
 
 
 class GetAccessLevels:
@@ -14,7 +14,7 @@ class GetAccessLevels:
         Returns: List of AccessLevel
 
         """
-        return await self.uow.access_level.all_access_levels()
+        return await self.uow.access_level_reader.all_access_levels()
 
 
 class GetUserAccessLevels:
@@ -34,4 +34,4 @@ class GetUserAccessLevels:
             UserNotExists - if user not exist
 
         """
-        return await self.uow.access_level.user_access_levels(user_id)
+        return await self.uow.access_level_reader.user_access_levels(user_id)

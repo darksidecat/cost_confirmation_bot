@@ -1,12 +1,13 @@
 import logging
 from typing import List
 
-from app.domain.access_levels.models.access_level import id_to_access_levels
+from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
+from app.domain.access_levels.models.helper import id_to_access_levels
 from app.domain.common.exceptions.repo import UniqueViolationError
 from app.domain.user import dto
 from app.domain.user.exceptions.user import UserAlreadyExists
 from app.domain.user.interfaces.uow import IUserUoW
-from app.domain.user.models.user import User
+from app.domain.user.models.user import TelegramUser
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +16,8 @@ class GetUsers:
     def __init__(self, uow: IUserUoW) -> None:
         self.uow = uow
 
-    async def __call__(self) -> List[User]:
-        users = await self.uow.user.all_users()
+    async def __call__(self) -> List[dto.User]:
+        users = await self.uow.user_reader.all_users()
         return users
 
 
@@ -24,7 +25,7 @@ class GetUser:
     def __init__(self, uow: IUserUoW) -> None:
         self.uow = uow
 
-    async def __call__(self, user_id: int) -> User:
+    async def __call__(self, user_id: int) -> dto.User:
         """
         Args:
             user_id:
@@ -34,15 +35,15 @@ class GetUser:
         Raises:
             UserNotExists - if user doesnt exist
         """
-        user = await self.uow.user.user_by_id(user_id)
+        user = await self.uow.user_reader.user_by_id(user_id)
         return user
 
 
 class AddUser:
-    def __init__(self, uow: IUserUoW) -> None:
+    def __init__(self, uow: IUserUoW | IAccessLevelUoW) -> None:
         self.uow = uow
 
-    async def __call__(self, user: dto.UserCreate) -> User:
+    async def __call__(self, user: dto.UserCreate) -> dto.User:
         """
         Args:
             user: payload for user creation
@@ -53,21 +54,23 @@ class AddUser:
             UserAlreadyExists - if user already exist
             AccessLevelNotExist - if user access level not exist
         """
-        access_levels = id_to_access_levels(user.access_levels)
 
-        user = User(
+        user = TelegramUser(
             id=user.id,
             name=user.name,
-            access_levels=access_levels,
+            access_levels=id_to_access_levels(user.access_levels),
         )
-        user = await self.uow.user.add_user(user=user)
+
         try:
+            user = await self.uow.user.add_user(user=user)
             await self.uow.commit()
         except UniqueViolationError:
             await self.uow.rollback()
             raise UserAlreadyExists
+
         logger.info("User added: id=%s, %s", user.id, user)
-        return user
+
+        return dto.User.from_orm(user)
 
 
 class DeleteUser:
@@ -87,14 +90,15 @@ class DeleteUser:
         """
         await self.uow.user.delete_user(user_id)
         await self.uow.commit()
+
         logger.info("User deleted: id=%s,", user_id)
 
 
 class PatchUser:
-    def __init__(self, uow: IUserUoW) -> None:
+    def __init__(self, uow: IUserUoW | IAccessLevelUoW) -> None:
         self.uow = uow
 
-    async def __call__(self, new_user: dto.UserPatch) -> User:
+    async def __call__(self, new_user: dto.UserPatch) -> dto.User:
         """
         Use for partially update User data
 
@@ -105,7 +109,7 @@ class PatchUser:
             edited user
 
         Raises:
-            UserNotExists - if user for editing doesnt exist
+            UserNotExists - if user for editing doesn't exist
             AccessLevelNotExist - if user access level not exist
             UserAlreadyExists - if already exist user with new user id
         """
@@ -117,12 +121,13 @@ class PatchUser:
             user.name = new_user.user_data.name
         if new_user.user_data.access_levels:
             user.access_levels = id_to_access_levels(new_user.user_data.access_levels)
-
         try:
-            updated_user = await self.uow.user.edit_user(user_id=new_user.id, user=user)
+            updated_user = await self.uow.user.edit_user(user=user)
             await self.uow.commit()
         except UniqueViolationError:
             await self.uow.rollback()
             raise UserAlreadyExists
+
         logger.info("User edited: id=%s,", updated_user.id)
-        return updated_user
+
+        return dto.User.from_orm(updated_user)

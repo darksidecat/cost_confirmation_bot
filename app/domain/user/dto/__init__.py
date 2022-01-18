@@ -1,1 +1,1 @@
-from .user import PatchUserData, UserCreate, UserPatch
+from .user import PatchUserData, User, UserCreate, UserPatch

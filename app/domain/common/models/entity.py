@@ -1,10 +1,3 @@
-from pydantic import BaseModel, Extra
+from attr import define
 
-
-class Entity(BaseModel):
-    class Config:
-        orm_mode = True
-        extra = Extra.forbid
-        validate_assignment = True
-        allow_mutation = True
-        allow_population_by_field_name = True
+entity = define(slots=False, kw_only=True)

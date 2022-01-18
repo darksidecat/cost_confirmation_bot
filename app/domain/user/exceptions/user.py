@@ -11,3 +11,11 @@ class UserAlreadyExists(UserException):
 
 class UserNotExists(UserException):
     """User not exist"""
+
+
+class UserWithNoAccessLevels(UserException):
+    """User must have at least one access level"""
+
+
+class BlockedUserWithOtherRole(UserException):
+    """Blocked user can have only that role"""

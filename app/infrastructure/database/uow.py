@@ -2,10 +2,10 @@ from typing import Type
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.access_levels.interfaces.repo import IAccessLevelRepo
+from app.domain.access_levels.interfaces.persistence import IAccessLevelReader
 from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
 from app.domain.common.interfaces.uow import IUoW
-from app.domain.user.interfaces.repo import IUserRepo
+from app.domain.user.interfaces.persistence import IUserReader, IUserRepo
 from app.domain.user.interfaces.uow import IUserUoW
 from app.infrastructure.database.exception_mapper import exception_mapper
 
@@ -24,14 +24,17 @@ class SQLAlchemyBaseUoW(IUoW):
 
 class SQLAlchemyUoW(SQLAlchemyBaseUoW, IUserUoW, IAccessLevelUoW):
     user: IUserRepo
-    access_level: IAccessLevelRepo
+    user_reader = IUserReader
+    access_level_reader: IAccessLevelReader
 
     def __init__(
         self,
         session: AsyncSession,
         user_repo: Type[IUserRepo],
-        access_level_repo: Type[IAccessLevelRepo],
+        user_reader: Type[IUserReader],
+        access_level_reader: Type[IAccessLevelReader],
     ):
         self.user = user_repo(session)
-        self.access_level = access_level_repo(session)
+        self.user_reader = user_reader(session)
+        self.access_level_reader = access_level_reader(session)
         super().__init__(session)

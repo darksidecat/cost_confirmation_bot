@@ -1,8 +1,5 @@
-from pydantic import BaseModel, Extra
+from attrs import define
 
-
-class ValueObject(BaseModel):
-    class Config:
-        orm_mode = True
-        extra = Extra.forbid
-        frozen = True
+value_object = define(
+    slots=False, kw_only=True, hash=True
+)  # frozen=True break sqlalchemy loading
