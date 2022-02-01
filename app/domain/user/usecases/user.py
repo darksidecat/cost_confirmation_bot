@@ -1,8 +1,9 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Any
+from typing import Any, List
 
 from app.domain.access_levels.models.helper import id_to_access_levels
+from app.domain.common.events.dispatcher import EventDispatcher
 from app.domain.common.exceptions.base import AccessDenied
 from app.domain.common.exceptions.repo import UniqueViolationError
 from app.domain.policy.access_policy import AccessPolicy
@@ -15,11 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class UserUseCase(ABC):
-    def __init__(
-            self,
-            uow: IUserUoW,
-    ) -> None:
+    def __init__(self, uow: IUserUoW, event_dispatcher: EventDispatcher) -> None:
         self.uow = uow
+        self.event_dispatcher = event_dispatcher
 
     @abstractmethod
     async def __call__(self, *args, **kwargs) -> Any:
@@ -59,7 +58,7 @@ class AddUser(UserUseCase):
             UserAlreadyExists - if user already exist
             AccessLevelNotExist - if user access level not exist
         """
-        user = TelegramUser(
+        user = TelegramUser.create(
             id=user.id,
             name=user.name,
             access_levels=id_to_access_levels(user.access_levels),
@@ -68,12 +67,13 @@ class AddUser(UserUseCase):
         try:
             user = await self.uow.user.add_user(user=user)
             await self.uow.commit()
+            logger.info("User persisted: id=%s, %s", user.id, user)
+
         except UniqueViolationError:
             await self.uow.rollback()
             raise UserAlreadyExists
 
-        logger.info("User added: id=%s, %s", user.id, user)
-
+        await self.event_dispatcher.publish_notifies(user.notifies)
         return dto.User.from_orm(user)
 
 
@@ -133,34 +133,44 @@ class PatchUser(UserUseCase):
 
 class UserService:
     def __init__(
-            self,
-            uow: IUserUoW,
-            access_policy: AccessPolicy
+        self,
+        uow: IUserUoW,
+        access_policy: AccessPolicy,
+        event_dispatcher: EventDispatcher,
     ) -> None:
         self.uow = uow
         self.access_policy = access_policy
+        self.event_dispatcher = event_dispatcher
 
     async def get_users(self) -> List[dto.User]:
         if not self.access_policy.read_user_policy():
             raise AccessDenied()
-        return await GetUsers(uow=self.uow)()
+        return await GetUsers(uow=self.uow, event_dispatcher=self.event_dispatcher)()
 
     async def get_user(self, user_id: int, internal: bool = False) -> dto.User:
         if not (self.access_policy.read_user_policy() or internal):
             raise AccessDenied()
-        return await GetUser(uow=self.uow)(user_id=user_id, internal=internal)
+        return await GetUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
+            user_id=user_id, internal=internal
+        )
 
     async def add_user(self, user: dto.UserCreate) -> dto.User:
         if not self.access_policy.modify_user():
             raise AccessDenied()
-        return await AddUser(uow=self.uow)(user=user)
+        return await AddUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
+            user=user
+        )
 
     async def delete_user(self, user_id: int) -> None:
         if not self.access_policy.modify_user():
             raise AccessDenied()
-        return await DeleteUser(uow=self.uow)(user_id=user_id)
+        return await DeleteUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
+            user_id=user_id
+        )
 
     async def patch_user(self, new_user: dto.UserPatch) -> dto.User:
         if not self.access_policy.modify_user():
             raise AccessDenied()
-        return await PatchUser(uow=self.uow)(new_user=new_user)
+        return await PatchUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
+            new_user=new_user
+        )

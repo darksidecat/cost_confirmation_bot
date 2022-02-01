@@ -7,11 +7,7 @@ from app.domain.policy.access_policy import AccessPolicy
 
 
 class GetAccessLevels:
-    def __init__(
-            self,
-            uow: IAccessLevelUoW,
-            access_policy: AccessPolicy
-    ) -> None:
+    def __init__(self, uow: IAccessLevelUoW, access_policy: AccessPolicy) -> None:
         self.uow = uow
         self.access_policy = access_policy
 
@@ -27,11 +23,7 @@ class GetAccessLevels:
 
 
 class GetUserAccessLevels:
-    def __init__(
-            self,
-            uow: IAccessLevelUoW,
-            access_policy: AccessPolicy
-    ) -> None:
+    def __init__(self, uow: IAccessLevelUoW, access_policy: AccessPolicy) -> None:
         self.uow = uow
         self.access_policy = access_policy
 

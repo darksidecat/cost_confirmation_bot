@@ -3,7 +3,6 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional, Tuple
 
-
 from app.domain.common.models.entity import entity
 from app.domain.common.models.value_object import value_object
 from app.domain.order.exceptions.order import (

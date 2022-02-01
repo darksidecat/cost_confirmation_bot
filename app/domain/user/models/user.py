@@ -4,6 +4,8 @@ import attrs
 
 from app.domain.access_levels.models.access_level import AccessLevel
 from app.domain.access_levels.models.helper import Levels
+from app.domain.common.events.event import Event
+from app.domain.common.models.aggregate import Aggregate
 from app.domain.common.models.entity import entity
 from app.domain.user.exceptions.user import (
     BlockedUserWithOtherRole,
@@ -16,10 +18,16 @@ def list_with_unique_values(access_levels: list):
 
 
 @entity
-class TelegramUser:
+class TelegramUser(Aggregate):
     id: int
     name: str
     access_levels: List[AccessLevel] = attrs.field(converter=list_with_unique_values)
+
+    @classmethod
+    def create(cls, id: int, name: str, access_levels: List[AccessLevel]):
+        user = TelegramUser(id=id, name=name, access_levels=access_levels)
+        user.notifies.append(UserCreated(user))
+        return user
 
     @access_levels.validator
     def validate_access_levels(self, attribute, value):
@@ -40,3 +48,8 @@ class TelegramUser:
     @property
     def is_admin(self) -> bool:
         return Levels.ADMINISTRATOR.value in self.access_levels
+
+
+class UserCreated(Event):
+    def __init__(self, user: TelegramUser):
+        self.user = user
