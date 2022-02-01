@@ -13,14 +13,7 @@ from app.api.handlers.responses.user import Users
 from app.domain.access_levels.exceptions.access_levels import AccessLevelNotExist
 from app.domain.user.dto.user import PatchUserData, User, UserCreate, UserPatch
 from app.domain.user.exceptions.user import UserAlreadyExists, UserNotExists
-from app.domain.user.interfaces.uow import IUserUoW
-from app.domain.user.usecases.user import (
-    AddUser,
-    DeleteUser,
-    GetUser,
-    GetUsers,
-    PatchUser,
-)
+from app.domain.user.usecases.user import UserService
 
 user_router = APIRouter(
     prefix="/users",
@@ -32,9 +25,9 @@ user_router = APIRouter(
     "/", response_model=Users, description="Return users with their access levels"
 )
 async def get_users(
-    uow: IUserUoW = Depends(providers.uow_provider),
+    user_service: UserService = Depends(providers.user_service_provider),
 ):
-    users = await GetUsers(uow=uow)()
+    users = await user_service.get_users()
     return Users(
         users=users,
     )
@@ -54,10 +47,10 @@ async def create_user(
     response: Response,
     user_id: int,
     user: UserCreateRequest,
-    uow: IUserUoW = Depends(providers.uow_provider),
+    user_service: UserService = Depends(providers.user_service_provider),
 ):
     try:
-        user = await AddUser(uow)(UserCreate(id=user_id, **user.dict()))
+        user = await user_service.add_user(UserCreate(id=user_id, **user.dict()))
         return user
     except UserAlreadyExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -78,10 +71,10 @@ async def create_user(
 async def delete_user(
     user_id: int,
     response: Response,
-    uow: IUserUoW = Depends(providers.uow_provider),
+    user_service: UserService = Depends(providers.user_service_provider),
 ):
     try:
-        await DeleteUser(uow=uow)(user_id)
+        await user_service.delete_user(user_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
@@ -98,10 +91,10 @@ async def delete_user(
 async def get_user(
     user_id: int,
     response: Response,
-    uow: IUserUoW = Depends(providers.uow_provider),
+    user_service: UserService = Depends(providers.user_service_provider),
 ):
     try:
-        return await GetUser(uow)(user_id=user_id)
+        return await user_service.get_user(user_id=user_id)
     except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserNotFoundError(user_id=user_id)
@@ -122,10 +115,10 @@ async def patch_user(
     response: Response,
     user_id: int,
     user_data: PatchUserData,
-    uow: IUserUoW = Depends(providers.uow_provider),
+    user_service: UserService = Depends(providers.user_service_provider),
 ):
     try:
-        user = await PatchUser(uow)(UserPatch(id=user_id, user_data=user_data))
+        user = await user_service.patch_user(UserPatch(id=user_id, user_data=user_data))
     except UserNotExists:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return UserNotFoundError(user_id=user_id)

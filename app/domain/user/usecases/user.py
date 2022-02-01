@@ -1,9 +1,11 @@
 import logging
-from typing import List
+from abc import ABC, abstractmethod
+from typing import List, Any
 
-from app.domain.access_levels.interfaces.uow import IAccessLevelUoW
 from app.domain.access_levels.models.helper import id_to_access_levels
+from app.domain.common.exceptions.base import AccessDenied
 from app.domain.common.exceptions.repo import UniqueViolationError
+from app.domain.policy.access_policy import AccessPolicy
 from app.domain.user import dto
 from app.domain.user.exceptions.user import UserAlreadyExists
 from app.domain.user.interfaces.uow import IUserUoW
@@ -12,20 +14,26 @@ from app.domain.user.models.user import TelegramUser
 logger = logging.getLogger(__name__)
 
 
-class GetUsers:
-    def __init__(self, uow: IUserUoW) -> None:
+class UserUseCase(ABC):
+    def __init__(
+            self,
+            uow: IUserUoW,
+    ) -> None:
         self.uow = uow
 
+    @abstractmethod
+    async def __call__(self, *args, **kwargs) -> Any:
+        ...
+
+
+class GetUsers(UserUseCase):
     async def __call__(self) -> List[dto.User]:
         users = await self.uow.user_reader.all_users()
         return users
 
 
-class GetUser:
-    def __init__(self, uow: IUserUoW) -> None:
-        self.uow = uow
-
-    async def __call__(self, user_id: int) -> dto.User:
+class GetUser(UserUseCase):
+    async def __call__(self, user_id: int, internal: bool = False) -> dto.User:
         """
         Args:
             user_id:
@@ -39,10 +47,7 @@ class GetUser:
         return user
 
 
-class AddUser:
-    def __init__(self, uow: IUserUoW | IAccessLevelUoW) -> None:
-        self.uow = uow
-
+class AddUser(UserUseCase):
     async def __call__(self, user: dto.UserCreate) -> dto.User:
         """
         Args:
@@ -54,7 +59,6 @@ class AddUser:
             UserAlreadyExists - if user already exist
             AccessLevelNotExist - if user access level not exist
         """
-
         user = TelegramUser(
             id=user.id,
             name=user.name,
@@ -73,10 +77,7 @@ class AddUser:
         return dto.User.from_orm(user)
 
 
-class DeleteUser:
-    def __init__(self, uow: IUserUoW) -> None:
-        self.uow = uow
-
+class DeleteUser(UserUseCase):
     async def __call__(self, user_id: int) -> None:
         """
 
@@ -94,10 +95,7 @@ class DeleteUser:
         logger.info("User deleted: id=%s,", user_id)
 
 
-class PatchUser:
-    def __init__(self, uow: IUserUoW | IAccessLevelUoW) -> None:
-        self.uow = uow
-
+class PatchUser(UserUseCase):
     async def __call__(self, new_user: dto.UserPatch) -> dto.User:
         """
         Use for partially update User data
@@ -131,3 +129,38 @@ class PatchUser:
         logger.info("User edited: id=%s,", updated_user.id)
 
         return dto.User.from_orm(updated_user)
+
+
+class UserService:
+    def __init__(
+            self,
+            uow: IUserUoW,
+            access_policy: AccessPolicy
+    ) -> None:
+        self.uow = uow
+        self.access_policy = access_policy
+
+    async def get_users(self) -> List[dto.User]:
+        if not self.access_policy.read_user_policy():
+            raise AccessDenied()
+        return await GetUsers(uow=self.uow)()
+
+    async def get_user(self, user_id: int, internal: bool = False) -> dto.User:
+        if not (self.access_policy.read_user_policy() or internal):
+            raise AccessDenied()
+        return await GetUser(uow=self.uow)(user_id=user_id, internal=internal)
+
+    async def add_user(self, user: dto.UserCreate) -> dto.User:
+        if not self.access_policy.modify_user():
+            raise AccessDenied()
+        return await AddUser(uow=self.uow)(user=user)
+
+    async def delete_user(self, user_id: int) -> None:
+        if not self.access_policy.modify_user():
+            raise AccessDenied()
+        return await DeleteUser(uow=self.uow)(user_id=user_id)
+
+    async def patch_user(self, new_user: dto.UserPatch) -> dto.User:
+        if not self.access_policy.modify_user():
+            raise AccessDenied()
+        return await PatchUser(uow=self.uow)(new_user=new_user)

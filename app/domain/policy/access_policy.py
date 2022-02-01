@@ -1,0 +1,20 @@
+from app.domain.user.models.user import TelegramUser
+
+
+class AccessPolicy:
+    def __init__(self, user: TelegramUser):
+        self.user = user
+
+    def read_access_levels(self):
+        return not self.user.is_blocked
+
+    def read_user_policy(self, internal: bool = False):
+        if internal:
+            return True
+        elif self.user.is_blocked:
+            return False
+        else:
+            return self.user.is_admin
+
+    def modify_user(self):
+        return self.user.is_admin
