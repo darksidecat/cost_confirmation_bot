@@ -1,6 +1,7 @@
 from typing import List, Set
 
 import attrs
+from attr import validators
 
 from app.domain.access_levels.models.access_level import AccessLevel
 from app.domain.access_levels.models.helper import Levels
@@ -19,8 +20,8 @@ def list_with_unique_values(access_levels: list):
 
 @entity
 class TelegramUser(Aggregate):
-    id: int
-    name: str
+    id: int = attrs.field(validator=validators.instance_of(int))
+    name: str = attrs.field(validator=validators.instance_of(str))
     access_levels: List[AccessLevel] = attrs.field(converter=list_with_unique_values)
 
     @classmethod
