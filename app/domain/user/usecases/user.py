@@ -32,7 +32,7 @@ class GetUsers(UserUseCase):
 
 
 class GetUser(UserUseCase):
-    async def __call__(self, user_id: int, internal: bool = False) -> dto.User:
+    async def __call__(self, user_id: int) -> dto.User:
         """
         Args:
             user_id:
@@ -66,14 +66,18 @@ class AddUser(UserUseCase):
 
         try:
             user = await self.uow.user.add_user(user=user)
+
+            await self.event_dispatcher.publish_events(user.events)
             await self.uow.commit()
+            await self.event_dispatcher.publish_notifications(user.events)
+            user.events.clear()
+
             logger.info("User persisted: id=%s, %s", user.id, user)
 
         except UniqueViolationError:
             await self.uow.rollback()
             raise UserAlreadyExists
 
-        await self.event_dispatcher.publish_notifies(user.notifies)
         return dto.User.from_orm(user)
 
 
@@ -147,12 +151,18 @@ class UserService:
             raise AccessDenied()
         return await GetUsers(uow=self.uow, event_dispatcher=self.event_dispatcher)()
 
-    async def get_user(self, user_id: int, internal: bool = False) -> dto.User:
-        if not (self.access_policy.read_user_policy() or internal):
+    async def get_user(self, user_id: int) -> dto.User:
+        if not self.access_policy.read_user_policy():
             raise AccessDenied()
         return await GetUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
-            user_id=user_id, internal=internal
+            user_id=user_id
         )
+
+    async def get_self(self, user_id: int) -> dto.User:
+        if self.access_policy.user.id == user_id:
+            return await GetUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
+                user_id=user_id
+            )
 
     async def add_user(self, user: dto.UserCreate) -> dto.User:
         if not self.access_policy.modify_user():

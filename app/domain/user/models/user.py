@@ -12,6 +12,7 @@ from app.domain.user.exceptions.user import (
     BlockedUserWithOtherRole,
     UserWithNoAccessLevels,
 )
+from app.domain.user import dto
 
 
 def list_with_unique_values(access_levels: list):
@@ -27,7 +28,7 @@ class TelegramUser(Aggregate):
     @classmethod
     def create(cls, id: int, name: str, access_levels: List[AccessLevel]):
         user = TelegramUser(id=id, name=name, access_levels=access_levels)
-        user.notifies.append(UserCreated(user))
+        user.events.append(UserCreated(dto.User.from_orm(user)))
         return user
 
     @access_levels.validator
@@ -52,5 +53,5 @@ class TelegramUser(Aggregate):
 
 
 class UserCreated(Event):
-    def __init__(self, user: TelegramUser):
+    def __init__(self, user: dto.User):
         self.user = user

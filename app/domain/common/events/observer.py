@@ -15,14 +15,9 @@ class Observer:
     async def notify(self, events: List[Event], data: Dict[str, Any]):
         for event in events:
             handlers = self.handlers.get(type(event), [])
-            if not len(handlers):
-                raise ValueError("No one handler for this event is registered")
-
             for handler in handlers:
                 wrapped_handler = self._wrap_middleware(self.middlewares, handler)
                 await wrapped_handler(event, data)
-
-        events.clear()
 
     def register(self, event_type: Type[Event], handler: Handler):
         handlers = self.handlers.setdefault(event_type, [])

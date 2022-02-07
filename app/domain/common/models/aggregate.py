@@ -9,4 +9,3 @@ from app.domain.common.models.entity import entity
 @entity
 class Aggregate:
     events: List[Event] = field(default=Factory(list))
-    notifies: List[Event] = field(default=Factory(list))
