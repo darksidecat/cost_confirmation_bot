@@ -1,7 +1,7 @@
 from app.domain.user.models.user import TelegramUser
 
 
-class AccessPolicy:
+class UserAccessPolicy:
     def __init__(self, user: TelegramUser):
         self.user = user
 
@@ -18,3 +18,6 @@ class AccessPolicy:
 
     def modify_user(self):
         return self.user.is_admin
+
+    def read_user_self(self, user_id: int):
+        return self.user.id == user_id

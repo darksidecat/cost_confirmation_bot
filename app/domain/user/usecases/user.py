@@ -1,12 +1,12 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Any, List
+from abc import ABC
+from typing import List
 
 from app.domain.access_levels.models.helper import id_to_access_levels
 from app.domain.common.events.dispatcher import EventDispatcher
 from app.domain.common.exceptions.base import AccessDenied
 from app.domain.common.exceptions.repo import UniqueViolationError
-from app.domain.policy.access_policy import AccessPolicy
+from app.domain.user.access_policy import UserAccessPolicy
 from app.domain.user import dto
 from app.domain.user.exceptions.user import UserAlreadyExists
 from app.domain.user.interfaces.uow import IUserUoW
@@ -19,10 +19,6 @@ class UserUseCase(ABC):
     def __init__(self, uow: IUserUoW, event_dispatcher: EventDispatcher) -> None:
         self.uow = uow
         self.event_dispatcher = event_dispatcher
-
-    @abstractmethod
-    async def __call__(self, *args, **kwargs) -> Any:
-        ...
 
 
 class GetUsers(UserUseCase):
@@ -139,7 +135,7 @@ class UserService:
     def __init__(
         self,
         uow: IUserUoW,
-        access_policy: AccessPolicy,
+        access_policy: UserAccessPolicy,
         event_dispatcher: EventDispatcher,
     ) -> None:
         self.uow = uow
@@ -152,17 +148,14 @@ class UserService:
         return await GetUsers(uow=self.uow, event_dispatcher=self.event_dispatcher)()
 
     async def get_user(self, user_id: int) -> dto.User:
-        if not self.access_policy.read_user_policy():
+        if not (
+            self.access_policy.read_user_policy()
+            or self.access_policy.read_user_self(user_id)
+        ):
             raise AccessDenied()
         return await GetUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
             user_id=user_id
         )
-
-    async def get_self(self, user_id: int) -> dto.User:
-        if self.access_policy.user.id == user_id:
-            return await GetUser(uow=self.uow, event_dispatcher=self.event_dispatcher)(
-                user_id=user_id
-            )
 
     async def add_user(self, user: dto.UserCreate) -> dto.User:
         if not self.access_policy.modify_user():

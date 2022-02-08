@@ -4,4 +4,4 @@ from app.domain.user.interfaces.persistence import IUserReader, IUserRepo
 
 class IUserUoW(IUoW):
     user: IUserRepo
-    user_reader = IUserReader
+    user_reader: IUserReader
